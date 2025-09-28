@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: notifications_db
+      MYSQL_USER: app
+      MYSQL_PASSWORD: apass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  app:
+    image: php:8.1-cli
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: ["php", "-S", "0.0.0.0:8000", "index.php"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - rabbitmq
+
+volumes:
+  db_data:
